@@ -562,6 +562,7 @@ static struct platform_driver gpu_cc_shima_driver = {
 		.of_match_table = gpu_cc_shima_match_table,
 		.sync_state = gpu_cc_shima_sync_state,
 		.pm = &gpu_cc_shima_pm_ops,
+		.probe_type = PROBE_FORCE_SYNCHRONOUS,
 	},
 };
 
