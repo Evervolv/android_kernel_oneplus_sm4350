@@ -21,6 +21,9 @@
 #include "dsi_panel.h"
 
 #include "sde_dbg.h"
+#if defined(CONFIG_PXLW_IRIS)
+#include "iris/dsi_iris5_api.h"
+#endif
 
 #define DSI_CTRL_DEFAULT_LABEL "MDSS DSI CTRL"
 
@@ -34,7 +37,7 @@
 
 #define DSI_CTRL_DEBUG(c, fmt, ...)	DRM_DEV_DEBUG(NULL, "[msm-dsi-debug]: %s: "\
 		fmt, c ? c->name : "inv", ##__VA_ARGS__)
-#define DSI_CTRL_ERR(c, fmt, ...)	DRM_DEV_ERROR(NULL, "[msm-dsi-error]: %s: "\
+#define DSI_CTRL_ERR(c, fmt, ...)	DRM_DEV_ERROR(NULL, "%s: "\
 		fmt, c ? c->name : "inv", ##__VA_ARGS__)
 #define DSI_CTRL_INFO(c, fmt, ...)	DRM_DEV_INFO(NULL, "[msm-dsi-info]: %s: "\
 		fmt, c->name, ##__VA_ARGS__)
@@ -1277,6 +1280,13 @@ int dsi_message_validate_tx_mode(struct dsi_ctrl *dsi_ctrl,
 
 	if (*flags & DSI_CTRL_CMD_FETCH_MEMORY) {
 		if ((dsi_ctrl->cmd_len + cmd_len + 4) > SZ_4K) {
+#if defined(CONFIG_PXLW_IRIS)
+			if (iris_is_chip_supported()) {
+				if ((dsi_ctrl->cmd_len + cmd_len + 4) <= SZ_256K)
+					return rc;
+				DSI_CTRL_ERR(dsi_ctrl, "Cannot transfer, size is greater than 256K\n");
+			}
+#endif
 			DSI_CTRL_ERR(dsi_ctrl, "Cannot transfer,size is greater than 4096\n");
 			return -ENOTSUPP;
 		}
@@ -1401,6 +1411,10 @@ static void dsi_kickoff_msg_tx(struct dsi_ctrl *dsi_ctrl,
 
 	if (flags & DSI_CTRL_CMD_DEFER_TRIGGER) {
 		if (flags & DSI_CTRL_CMD_FETCH_MEMORY) {
+#if defined(CONFIG_PXLW_IRIS)
+			if (iris_is_chip_supported())
+				msm_gem_sync(dsi_ctrl->tx_cmd_buf);
+#endif
 			if (flags & DSI_CTRL_CMD_NON_EMBEDDED_MODE) {
 				dsi_hw_ops.kickoff_command_non_embedded_mode(
 							&dsi_ctrl->hw,
@@ -1604,7 +1618,12 @@ static int dsi_message_tx(struct dsi_ctrl *dsi_ctrl,
 
 		cmdbuf = (u8 *)(dsi_ctrl->vaddr);
 
+#if defined(CONFIG_PXLW_IRIS)
+		if (!iris_is_chip_supported())
+			msm_gem_sync(dsi_ctrl->tx_cmd_buf);
+#else
 		msm_gem_sync(dsi_ctrl->tx_cmd_buf);
+#endif
 		for (cnt = 0; cnt < length; cnt++)
 			cmdbuf[dsi_ctrl->cmd_len + cnt] = buffer[cnt];
 
