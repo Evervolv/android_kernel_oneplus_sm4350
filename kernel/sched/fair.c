@@ -7358,11 +7358,7 @@ int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu,
 	int task_boost = per_task_boost(p);
 	bool is_uclamp_boosted = uclamp_boosted(p);
 	bool boosted = is_uclamp_boosted || (task_boost > 0);
-#ifdef CONFIG_ARCH_HOLI
-	int start_cpu, order_index = 0, end_index = 0;
-#else
 	int start_cpu, order_index, end_index;
-#endif
 #ifdef CONFIG_OPCHAIN
 	// 200-10-23, add for uxrealm CONFIG_OPCHAIN
 	bool is_uxtop = is_opc_task(p, UT_FORE);
@@ -7382,10 +7378,6 @@ int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu,
 		goto eas_not_ready;
 
 	walt_get_indicies(p, &order_index, &end_index, task_boost, boosted);
-#ifdef CONFIG_ARCH_HOLI
-	BUG_ON(order_index >= num_sched_clusters);
-	BUG_ON(end_index >= num_sched_clusters);
-#endif
 	start_cpu = cpumask_first(&cpu_array[order_index][0]);
 
 	is_rtg = task_in_related_thread_group(p);

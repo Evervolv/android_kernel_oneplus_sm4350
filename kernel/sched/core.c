@@ -1677,13 +1677,6 @@ void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
 
 	lockdep_assert_held(&p->pi_lock);
 
-#ifdef CONFIG_ARCH_HOLI
-/* v-danshuaixin@oppo.com disable aux kswapd migrate to cpu6 and cpu 7 */
-	if ((p->flags & PF_KSWAPD) &&
-	     (cpumask_test_cpu(6, new_mask) || cpumask_test_cpu(7, new_mask)))
-		return;
-#endif /*CONFIG_ARCH_HOLI */
-
 	queued = task_on_rq_queued(p);
 	running = task_current(rq, p);
 

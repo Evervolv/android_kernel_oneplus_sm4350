@@ -14,12 +14,7 @@
 #include <linux/zstd.h>
 #include <crypto/internal/scompress.h>
 
-
-#ifdef CONFIG_ARCH_HOLI
-#define ZSTD_DEF_LEVEL	1
-#else
 #define ZSTD_DEF_LEVEL	3
-#endif
 
 struct zstd_ctx {
 	ZSTD_CCtx *cctx;
@@ -30,11 +25,7 @@ struct zstd_ctx {
 
 static ZSTD_parameters zstd_params(void)
 {
-#ifdef CONFIG_ARCH_HOLI
-	return ZSTD_getParams(ZSTD_DEF_LEVEL, PAGE_SIZE, 0);
-#else
 	return ZSTD_getParams(ZSTD_DEF_LEVEL, 0, 0);
-#endif
 }
 
 static int zstd_comp_init(struct zstd_ctx *ctx)
