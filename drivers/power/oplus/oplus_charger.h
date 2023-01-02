@@ -29,7 +29,7 @@
 #elif defined CONFIG_FB
 #include <linux/notifier.h>
 #include <linux/fb.h>
-#ifdef CONFIG_DRM_MSM
+#ifdef CONFIG_QCOM_KGSL
 #include <linux/msm_drm_notify.h>
 #endif
 #endif
